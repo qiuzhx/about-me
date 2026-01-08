@@ -2,8 +2,8 @@
 
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { Heart, Calendar, MapPin, Clock, Sparkles } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Heart, Calendar, MapPin, Sparkles } from "lucide-react";
+import { useMemo } from "react";
 
 const photos = [
   { src: "/wedding/happiness.jpg", alt: "幸福时刻" },
@@ -28,7 +28,6 @@ const itemVariants = {
     y: 0,
     transition: {
       duration: 0.6,
-      ease: "easeOut",
     },
   },
 };
@@ -44,12 +43,23 @@ const fadeInVariants = {
 };
 
 // 飘落的心形组件
-function FloatingHeart() {
-  const [position, setPosition] = useState({
-    x: Math.random() * 100,
-    delay: Math.random() * 2,
-    duration: 3 + Math.random() * 2,
-  });
+function FloatingHeart({ index }: { index: number }) {
+  // 使用索引作为种子来生成伪随机值，避免在渲染时调用 Math.random
+  const position = useMemo(() => {
+    // 使用简单的伪随机算法，基于索引生成
+    const seed = (index * 9301 + 49297) % 233280;
+    const random1 = seed / 233280;
+    const seed2 = (seed * 9301 + 49297) % 233280;
+    const random2 = seed2 / 233280;
+    const seed3 = (seed2 * 9301 + 49297) % 233280;
+    const random3 = seed3 / 233280;
+    
+    return {
+      x: random1 * 100,
+      delay: random2 * 2,
+      duration: 3 + random3 * 2,
+    };
+  }, [index]);
 
   return (
     <motion.div
@@ -79,19 +89,15 @@ function FloatingHeart() {
 }
 
 export default function WeddingPage() {
-  const [hearts, setHearts] = useState<number[]>([]);
-
-  useEffect(() => {
-    // 创建多个飘落的心形
-    setHearts(Array.from({ length: 8 }, (_, i) => i));
-  }, []);
+  // 创建多个飘落的心形
+  const hearts = useMemo(() => Array.from({ length: 8 }, (_, i) => i), []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-amber-50 dark:from-rose-950 dark:via-pink-950 dark:to-amber-950 relative overflow-hidden">
       {/* 背景装饰 */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         {hearts.map((i) => (
-          <FloatingHeart key={i} />
+          <FloatingHeart key={i} index={i} />
         ))}
         {/* 渐变光晕 */}
         <motion.div
